@@ -26,6 +26,10 @@ A modern, high-performance mod manager for League of Legends. Built with C++ and
 
 ## 📸 Screenshots
 
+|            Updated Window            |
+| :----------------------------------: |
+| ![Main Window](docs/manager-new.png) |
+
 |            Main Window             |             Mod Editing             |           File Management            |
 | :--------------------------------: | :---------------------------------: | :----------------------------------: |
 | ![Main Window](docs/manager-0.png) | ![Editing Info](docs/manager-1.png) | ![Editing Files](docs/manager-2.png) |
