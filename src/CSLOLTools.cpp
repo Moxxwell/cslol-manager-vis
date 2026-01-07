@@ -1,4 +1,5 @@
 #include <QDebug>
+#include <QMetaObject>
 #include <chrono>
 
 #include "CSLOLTools.h"
@@ -83,4 +84,29 @@ void CSLOLTools::setLeaguePath(QString value) {
         leaguePath_ = value;
         emit leaguePathChanged(value);
     }
+}
+
+QString CSLOLTools::modImageGet(QString modName) {
+    QString result;
+    QMetaObject::invokeMethod(
+        worker_,
+        "modImageGet",
+        Qt::BlockingQueuedConnection,
+        Q_RETURN_ARG(QString, result),
+        Q_ARG(QString, modName)
+    );
+    return result;
+}
+
+QString CSLOLTools::modImageSet(QString modName, QString image) {
+    QString result;
+    QMetaObject::invokeMethod(
+        worker_,
+        "modImageSet",
+        Qt::BlockingQueuedConnection,
+        Q_RETURN_ARG(QString, result),
+        Q_ARG(QString, modName),
+        Q_ARG(QString, image)
+    );
+    return result;
 }

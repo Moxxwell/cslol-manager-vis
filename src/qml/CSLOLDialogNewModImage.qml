@@ -7,5 +7,10 @@ FileDialog {
     visible: false
     title: qsTr("Select image file")
     fileMode: FileDialog.OpenFile
-    nameFilters: "PNG Image file (*.png)"
+    nameFilters: [
+        "Images (*.png *.jpg *.jpeg)",
+        "PNG (*.png)",
+        "JPEG (*.jpg *.jpeg)",
+        "All files (*)"
+    ]
 }

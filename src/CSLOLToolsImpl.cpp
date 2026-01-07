@@ -132,25 +132,46 @@ bool CSLOLToolsImpl::modInfoWrite(QString modName, QJsonObject object) {
 }
 
 QString CSLOLToolsImpl::modImageGet(QString modName) {
-    auto path = prog_ + "/installed/" + modName + "/META/image.png";
-    if (QFileInfo info(prog_); !info.exists()) {
-        return "";
-    }
-    return path;
+    const QString metaDir = prog_ + "/installed/" + modName + "/META";
+    const QString jpg = metaDir + "/image.jpg";
+    const QString jpeg = metaDir + "/image.jpeg";
+    const QString png = metaDir + "/image.png";
+
+    if (QFileInfo::exists(jpg)) return jpg;
+    if (QFileInfo::exists(jpeg)) return jpeg;
+    if (QFileInfo::exists(png)) return png;
+    return "";
 }
 
 QString CSLOLToolsImpl::modImageSet(QString modName, QString image) {
     QDir(prog_ + "/installed/" + modName).mkpath("META");
-    auto path = prog_ + "/installed/" + modName + "/META/image.png";
+    const QString metaDir = prog_ + "/installed/" + modName + "/META";
+
+    const QString jpg = metaDir + "/image.jpg";
+    const QString jpeg = metaDir + "/image.jpeg";
+    const QString png = metaDir + "/image.png";
+
+    QFile::remove(jpg);
+    QFile::remove(jpeg);
+    QFile::remove(png);
+
     if (image.isEmpty()) {
-        QFile::remove(path);
         return "";
     }
-    if (path == image) return path;
+
+    const QString ext = QFileInfo(image).suffix().toLower();
+    QString dstPath = png;
+
+    if (ext == "jpg") dstPath = jpg;
+    else if (ext == "jpeg") dstPath = jpeg;
+    else if (ext == "png") dstPath = png;
+
+    if (dstPath == image) return dstPath;
+
     if (QFile src(image); src.open(QIODevice::ReadOnly)) {
-        if (QFile dst(path); dst.open(QIODevice::WriteOnly)) {
+        if (QFile dst(dstPath); dst.open(QIODevice::WriteOnly)) {
             dst.write(src.readAll());
-            return path;
+            return dstPath;
         }
     }
     return "";

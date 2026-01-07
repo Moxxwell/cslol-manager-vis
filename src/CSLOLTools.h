@@ -25,6 +25,10 @@ public:
     explicit CSLOLTools(QObject* parent = nullptr);
     ~CSLOLTools();
 
+    Q_INVOKABLE QString modImageGet(QString modName);
+    Q_INVOKABLE QString modImageSet(QString modName, QString image);
+
+
 signals:
     void stateChanged(CSLOLToolsImpl::CSLOLState state);
     void statusChanged(QString status);
