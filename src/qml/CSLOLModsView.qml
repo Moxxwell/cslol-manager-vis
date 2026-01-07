@@ -290,8 +290,7 @@ ColumnLayout {
             }
 
             cellWidth: Math.floor(cslolModsViewView.width / cslolModsView.columnCount)
-            cellHeight: 270
-
+            cellHeight: 280
 
             model: cslolModsViewModel
 
@@ -302,147 +301,147 @@ ColumnLayout {
                 padding: 8
 
                 Material.elevation: 3
-
-                ColumnLayout {
+                contentItem: Item {
                     anchors.fill: parent
-                    spacing: 6
+                    clip: false
 
-                    // Preview image area
-                    Item {
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 150
-                        clip: true
+                    ColumnLayout {
+                        anchors.fill: parent
+                        spacing: 6
 
-                        Rectangle {
-                            anchors.fill: parent
-                            radius: 10
-                            opacity: 0.08
+                        // Preview image area
+                        Item {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 150
+
+                            Rectangle {
+                                id: previewMask
+                                anchors.fill: parent
+                                radius: 8
+                                clip: true
+                                color: Qt.rgba(1,1,1,0.06)
+
+                                Image {
+                                    id: preview
+                                    anchors.fill: parent
+                                    source: (cslolModsView.showImage && model.Image) ? model.Image : ""
+                                    asynchronous: true
+                                    cache: true
+                                    fillMode: Image.PreserveAspectCrop
+                                    sourceSize.width: width
+                                    sourceSize.height: height
+                                    visible: status === Image.Ready
+                                    smooth: true
+                                    mipmap: true
+                                }
+
+                                Label {
+                                    anchors.centerIn: parent
+                                    visible: preview.status !== Image.Ready
+                                    text: preview.status === Image.Error ? ("Error: " + preview.errorString) : qsTr("No preview")
+                                    opacity: 0.6
+                                    wrapMode: Text.Wrap
+                                }
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                enabled: !isBussy
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: modCheckbox.checked = !modCheckbox.checked
+                            }
                         }
 
-                        Image {
-                            id: preview
-                            anchors.fill: parent
-                            source: (cslolModsView.showImage && model.Image) ? model.Image : ""
+                        // Top row: enable checkbox + name
+                        CheckBox {
+                            id: modCheckbox
+                            Layout.fillWidth: true
+                            text: model ? model.Name : ""
+                            property bool installed: model ? model.Enabled : false
 
-                            asynchronous: true
-                            cache: true
-                            fillMode: Image.PreserveAspectCrop
+                            onInstalledChanged: {
+                                if (checked != installed) checked = installed
+                            }
 
-                            sourceSize.width: width
-                            sourceSize.height: height
+                            checked: false
 
-                            // IMPORTANT: only show when the image is actually ready
-                            visible: status === Image.Ready
+                            onCheckedChanged: {
+                                if (checked != installed) {
+                                    cslolModsViewModel.setProperty(index, "Enabled", checked)
+                                    cslolModsView.checkedUpdate()
+                                }
+                            }
+
+                            CSLOLToolTip {
+                                text: qsTr("Enable this mod")
+                                visible: parent.hovered
+                            }
                         }
 
+                        // Version / author
                         Label {
-                            anchors.centerIn: parent
-                            // Show fallback unless the image is actually ready
-                            visible: preview.status !== Image.Ready
-                            text: preview.status === Image.Error ? ("Error: " + preview.errorString) : qsTr("No preview")
-                            opacity: 0.6
-                            wrapMode: Text.Wrap
-                        }
-                    }
-
-                    // Top row: enable checkbox + name
-                    CheckBox {
-                        id: modCheckbox
-                        Layout.fillWidth: true
-                        text: model ? model.Name : ""
-                        property bool installed: model ? model.Enabled : false
-
-                        onInstalledChanged: {
-                            if (checked != installed) checked = installed
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignHCenter
+                            text: "V" + model.Version + " by " + model.Author
+                            wrapMode: Text.NoWrap
+                            maximumLineCount: 1
+                            elide: Text.ElideRight
+                            opacity: 0.85
                         }
 
-                        checked: false
+                        // Buttons row
+                        RowLayout {
+                            Layout.fillWidth: true
+                            layoutDirection: Qt.RightToLeft
+                            spacing: 2
 
-                        onCheckedChanged: {
-                            if (checked != installed) {
-                                cslolModsViewModel.setProperty(index, "Enabled", checked)
-                                cslolModsView.checkedUpdate()
+                            ToolButton {
+                                text: "\uf00d"
+                                font.family: "FontAwesome"
+                                onClicked: {
+                                    let modName = model.FileName
+                                    cslolModsViewModel.remove(index, 1)
+                                    cslolModsView.modRemoved(modName)
+                                }
+                                CSLOLToolTip { text: qsTr("Remove this mod"); visible: parent.hovered }
                             }
-                        }
 
-                        CSLOLToolTip {
-                            text: qsTr("Enable this mod")
-                            visible: parent.hovered
-                        }
-                    }
-
-                    // Version / author
-                    Label {
-                        Layout.fillWidth: true
-                        horizontalAlignment: Text.AlignHCenter
-                        text: "V" + model.Version + " by " + model.Author
-                        elide: Text.ElideRight
-                        opacity: 0.85
-                    }
-
-                    // Description
-                    Label {
-                        Layout.fillWidth: true
-                        horizontalAlignment: Text.AlignHCenter
-                        text: model.Description ? model.Description : ""
-                        wrapMode: Text.Wrap
-                        elide: Text.ElideRight
-                        maximumLineCount: 2
-                        opacity: 0.85
-                    }
-
-                    // Buttons row (same actions as before)
-                    RowLayout {
-                        Layout.fillWidth: true
-                        layoutDirection: Qt.RightToLeft
-                        spacing: 2
-
-                        ToolButton {
-                            text: "\uf00d"
-                            font.family: "FontAwesome"
-                            onClicked: {
-                                let modName = model.FileName
-                                cslolModsViewModel.remove(index, 1)
-                                cslolModsView.modRemoved(modName)
+                            ToolButton {
+                                text: "\uf1c6"
+                                font.family: "FontAwesome"
+                                onClicked: cslolModsView.modExport(model.FileName)
+                                CSLOLToolTip { text: qsTr("Export this mod"); visible: parent.hovered }
                             }
-                            CSLOLToolTip { text: qsTr("Remove this mod"); visible: parent.hovered }
-                        }
 
-                        ToolButton {
-                            text: "\uf1c6"
-                            font.family: "FontAwesome"
-                            onClicked: cslolModsView.modExport(model.FileName)
-                            CSLOLToolTip { text: qsTr("Export this mod"); visible: parent.hovered }
-                        }
-
-                        ToolButton {
-                            text: "\uf044"
-                            font.family: "FontAwesome"
-                            onClicked: cslolModsView.modEdit(model.FileName)
-                            CSLOLToolTip { text: qsTr("Edit this mod"); visible: parent.hovered }
-                        }
-
-                        ToolButton {
-                            text: "\uf059"
-                            font.family: "FontAwesome"
-                            onClicked: {
-                                let url = model.Home
-                                if (window.validUrl.test(url)) Qt.openUrlExternally(url)
+                            ToolButton {
+                                text: "\uf044"
+                                font.family: "FontAwesome"
+                                onClicked: cslolModsView.modEdit(model.FileName)
+                                CSLOLToolTip { text: qsTr("Edit this mod"); visible: parent.hovered }
                             }
-                            CSLOLToolTip { text: qsTr("Mod updates"); visible: parent.hovered }
-                        }
 
-                        ToolButton {
-                            text: "\uf004"
-                            font.family: "FontAwesome"
-                            onClicked: {
-                                let url = model.Heart
-                                if (window.validUrl.test(url)) Qt.openUrlExternally(url)
+                            ToolButton {
+                                text: "\uf059"
+                                font.family: "FontAwesome"
+                                onClicked: {
+                                    let url = model.Home
+                                    if (window.validUrl.test(url)) Qt.openUrlExternally(url)
+                                }
+                                CSLOLToolTip { text: qsTr("Mod updates"); visible: parent.hovered }
                             }
-                            CSLOLToolTip { text: qsTr("Support this author"); visible: parent.hovered }
-                        }
 
-                        Item { Layout.fillWidth: true } // pushes buttons to the right
+                            ToolButton {
+                                text: "\uf004"
+                                font.family: "FontAwesome"
+                                onClicked: {
+                                    let url = model.Heart
+                                    if (window.validUrl.test(url)) Qt.openUrlExternally(url)
+                                }
+                                CSLOLToolTip { text: qsTr("Support this author"); visible: parent.hovered }
+                            }
+
+                            Item { Layout.fillWidth: true } // pushes buttons to the right
+                        }
                     }
                 }
             }
