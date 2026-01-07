@@ -27,7 +27,7 @@ public:
 
     Q_INVOKABLE QString modImageGet(QString modName);
     Q_INVOKABLE QString modImageSet(QString modName, QString image);
-
+    Q_INVOKABLE QString modImageRemove(QString modName);
 
 signals:
     void stateChanged(CSLOLToolsImpl::CSLOLState state);

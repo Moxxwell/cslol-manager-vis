@@ -147,26 +147,30 @@ QString CSLOLToolsImpl::modImageSet(QString modName, QString image) {
     QDir(prog_ + "/installed/" + modName).mkpath("META");
     const QString metaDir = prog_ + "/installed/" + modName + "/META";
 
-    const QString jpg = metaDir + "/image.jpg";
+    const QString jpg  = metaDir + "/image.jpg";
     const QString jpeg = metaDir + "/image.jpeg";
-    const QString png = metaDir + "/image.png";
+    const QString png  = metaDir + "/image.png";
 
-    QFile::remove(jpg);
-    QFile::remove(jpeg);
-    QFile::remove(png);
-
+    // If caller didn't provide a new image, keep whatever is already there
     if (image.isEmpty()) {
-        return "";
+        return modImageGet(modName);
     }
 
     const QString ext = QFileInfo(image).suffix().toLower();
     QString dstPath = png;
-
     if (ext == "jpg") dstPath = jpg;
     else if (ext == "jpeg") dstPath = jpeg;
     else if (ext == "png") dstPath = png;
 
-    if (dstPath == image) return dstPath;
+    // If it's already the correct destination file, do nothing (don't delete!)
+    if (QFileInfo(image).absoluteFilePath() == QFileInfo(dstPath).absoluteFilePath()) {
+        return dstPath;
+    }
+
+    // Now we know we're changing it, so remove old ones
+    QFile::remove(jpg);
+    QFile::remove(jpeg);
+    QFile::remove(png);
 
     if (QFile src(image); src.open(QIODevice::ReadOnly)) {
         if (QFile dst(dstPath); dst.open(QIODevice::WriteOnly)) {
@@ -174,6 +178,14 @@ QString CSLOLToolsImpl::modImageSet(QString modName, QString image) {
             return dstPath;
         }
     }
+    return "";
+}
+
+QString CSLOLToolsImpl::modImageRemove(QString modName) {
+    const QString metaDir = prog_ + "/installed/" + modName + "/META";
+    QFile::remove(metaDir + "/image.jpg");
+    QFile::remove(metaDir + "/image.jpeg");
+    QFile::remove(metaDir + "/image.png");
     return "";
 }
 
@@ -565,13 +577,20 @@ void CSLOLToolsImpl::changeModInfo(QString fileName, QJsonObject infoData, QStri
             doReportError("Change mod info", "Failed to write mod info", "");
         } else {
             infoData = modInfoFixup(fileName, infoData);
-            image = modImageSet(fileName, image);
+
+            if (image.isEmpty()) {
+                image = modImageRemove(fileName);
+            } else {
+                image = modImageSet(fileName, image);
+            }
+
             emit modInfoChanged(fileName, infoData, image);
         }
 
         setState(CSLOLState::StateIdle);
     }
 }
+
 
 void CSLOLToolsImpl::removeModWads(QString fileName, QJsonArray wads) {
     if (state_ == CSLOLState::StateIdle) {

@@ -61,6 +61,7 @@ public slots:
     void exportMod(QString name, QString dest);
     QString modImageGet(QString modName);
     QString modImageSet(QString modName, QString image);
+    QString modImageRemove(QString modName);
     void installFantomeZip(QString path);
     void saveProfile(QString name, QJsonObject mods, bool run, bool skipConflict, bool oldPatcher);
     void loadProfile(QString name);

@@ -110,3 +110,15 @@ QString CSLOLTools::modImageSet(QString modName, QString image) {
     );
     return result;
 }
+
+QString CSLOLTools::modImageRemove(QString modName) {
+    QString result;
+    QMetaObject::invokeMethod(
+        worker_,
+        "modImageRemove",
+        Qt::BlockingQueuedConnection,
+        Q_RETURN_ARG(QString, result),
+        Q_ARG(QString, modName)
+    );
+    return result;
+}
